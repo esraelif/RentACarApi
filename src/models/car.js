@@ -31,60 +31,72 @@ const { mongoose } = require('../configs/dbConnection')
 }
 /* ------------------------------------------------------- */
 // Car Model:
+
 const CarSchema = new mongoose.Schema({
+
     plateNumber: {
         type: String,
         trim: true,
         unique: true,
         required: true,
     },
+
     brand: {
         type: String,
         trim: true,
         required: true,
     },
+
     model: {
         type: String,
         trim: true,
         required: true,
     },
+
     year: {
         type: Number,
         min: 1950,
-        max: new Date().getFullYear,
-
+        max: new Date().getFullYear(), //2024
+        required: true,
     },
-    isAutomotic: {
+
+    isAutomatic: {
         type: Boolean,
-        dafault: false,
+        default: false,
     },
 
     pricePerDay: {
         type: Number,
-        required: true,
-
+        required: true
     },
-    // images:[]
+
+    //images: []
     images: {
         type: Array,
         default: []
     },
+
     isAvailable: {
         type: Boolean,
-        default: true,
+        default: true
     },
+
     createdId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: true
     },
+
     updatedId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-    },
+        required: true
+    }
 }, {
     collection: 'cars',
     timestamps: true,
 })
+
+//Export
 module.exports = mongoose.model('Car', CarSchema)
+

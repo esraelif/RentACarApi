@@ -65,7 +65,7 @@ module.exports = {
             #swagger.tags = ["Users"]
             #swagger.summary = "Get Single User"
         */
-       
+
         //? Yetkisiz kullanıcının başka bir kullanıcıyı yönetmesini engelle (sadece kendi verileri):
         // if (!req.user.isAdmin) {
         //     req.params.id = req.user.id
