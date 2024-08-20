@@ -8,6 +8,11 @@ const router = require('express').Router()
 const permissions = require('../middlewares/permissions')
 const car = require('../controllers/car')
 
+//URL: /cars
+router.route('/')
+    .get(car.list)
+    .post(permissions.isLogin)
+
 
 
 
