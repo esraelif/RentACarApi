@@ -15,7 +15,7 @@ module.exports = {
             throw new Error('NoPermission: You must login.')
         }
     },
-    isStaff: (rew, res, next) => {
+    isStaff: (req, res, next) => {
         if (req.user && req.user.isActive && (req.user.isAdmin || req.user.isStaff)) {
             next()
         } else {

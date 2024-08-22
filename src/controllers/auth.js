@@ -26,11 +26,11 @@ module.exports = {
             }
         */
 
-        const { username, password } = req.body
+        const { username, email, password } = req.body
 
-        if (username && password) {
+        if ((username || email) && password) {
 
-            const user = await User.findOne({ username })
+            const user = await User.findOne({ $or: [{ username }, { email }] })
 
             if (user && user.password == passwordEncrypt(password)) {
 
@@ -157,7 +157,7 @@ module.exports = {
             }
 
         } else {
-            
+
             res.errorStatusCode = 401
             throw new Error('Please enter token.refresh')
         }

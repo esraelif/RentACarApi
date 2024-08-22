@@ -35,12 +35,13 @@ module.exports = {
                 in: 'body',
                 required: true,
                 schema: {
-                $ref:"#/definitions/Car"
-                 
+                    $ref: "#/definitions/Car'
                 }
             }
         */
-        // createdId and updatedId verisini  req.user'dan al
+
+
+        // createdId ve updatedId verisini req.user'dan al
         req.body.createdId = req.user._id
         req.body.updatedId = req.user._id
 
