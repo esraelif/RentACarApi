@@ -30,31 +30,50 @@ module.exports = {
     },
     create: async (req, res) => {
         /*
-            #swagger.tags = ["Reservations"]
-            #swagger.summary = "Create Reservation"
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                $ref:"#/definitions/Car"
-                 
-                }
-            }
-        */
-        //  Admin veya Staff değilse veya UserId gönderilmemişse verisini  req.user'dan al
-        if ((!req.user.isAdmin && req.user.isStaff) || !req.body?.userId) {
+           #swagger.tags = ["Reservations"]
+           #swagger.summary = "Create Reservation"
+           #swagger.parameters['body'] = {
+               in: 'body',
+               required: true,
+               schema: {
+                   $ref: "#/definitions/Reservation'
+               }
+           }
+       */
+
+
+        // "Admin/staff değilse" veya "UserId gönderilmemişse" req.user'dan al
+        if ((!req.user.isAdmin && !req.user.isStaff) || !req.body?.userId) {
             req.body.userId = req.user._id
         }
-        // createdId and updatedId verisini  req.user'dan al
+
+        // createdId ve updatedId verisini req.user'dan al
         req.body.createdId = req.user._id
         req.body.updatedId = req.user._id
 
-        const data = await Car.create(req.body)
-
-        res.status(201).send({
-            error: false,
-            data
+        // Kullanıcı çakışsan tarihlerde başka bir reservesi var mı?
+        const userReservationInDates = await Reservation.findOne({
+            userId: req.body.userId,
+            // carId req.body.carId, // Farklı bir araba kiralanabilir
+            $nor: [
+                { startDate: { $gt: req.body.endDate } }, // gt: >
+                { endDate: { $lt: req.body.startDate } } // lt: <
+            ]
         })
+
+        if (userReservationInDates) {
+            res.errorStatusCode = 400
+            throw new Error('It cannot be added because there is another reservation with the same date.',
+                { cause: { userReservationInDates } }
+            )
+        } else {
+            const data = await Reservation.create(req.body)
+
+            res.status(201).send({
+                error: false,
+                data
+            })
+        }
     },
     read: async (req, res) => {
         /*

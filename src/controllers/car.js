@@ -3,8 +3,12 @@
     NODEJS EXPRESS | CLARUSWAY FullStack Team
 ------------------------------------------------------- */
 // Car Controller:
+
 const Car = require('../models/car')
+const Reservation = require('../models/reservation')
+
 module.exports = {
+
     list: async (req, res) => {
         /*
             #swagger.tags = ["Cars"]
@@ -19,7 +23,53 @@ module.exports = {
             `
         */
 
-        const data = await res.getModelList(Car)
+        // Müsait olmayan araçları listeleme:
+        let customFilter = { isAvailable: true }
+
+        /* tarıhe gore listele */
+
+        const { startDate: getStartDate, endDate: getEndDate } = req.query
+
+        if (getStartDate && getEndDate) {
+            const reservedCars = await Reservation.find({
+                $nor: [
+                    { startDate: { $gt: getEndDate } }, // gt: >
+                    { endDate: { $lt: getStartDate } } // lt: <
+                ]
+            }, { _id: 0, carId: 1 }).distinct('carId')
+
+            console.log(reservedCars)
+
+            // 20-30 / 07 kiralık opel
+
+            // 10-19 / 07 aralığında araç kiralamam gerekli
+
+            // start date             and date      
+            // 20 / 07                30 / 07
+            // -------                -------
+            //    0                      0          => 0
+
+            // 10-20 / 07 aralığında araç kiralamam gerekli
+
+            // start date             and date      
+            // 20 / 07                30 / 07
+            // -------                -------
+            //    0                      1          => 1
+
+            // console.log(' reservedCars >> ', reservedCars);
+
+            if (reservedCars.length) {
+                customFilter._id = { $nin: reservedCars }
+            }
+        } else {
+            res.errorStatusCode = 404
+            throw new Error('startDate and endDate queries are required.')
+        }
+
+        const data = await res.getModelList(Car, customFilter, [
+            { path: 'createdId', select: 'username' },
+            { path: 'updatedId', select: 'username' },
+        ])
 
         res.status(200).send({
             error: false,
@@ -27,6 +77,7 @@ module.exports = {
             data
         })
     },
+
     create: async (req, res) => {
         /*
             #swagger.tags = ["Cars"]
@@ -52,12 +103,18 @@ module.exports = {
             data
         })
     },
+
     read: async (req, res) => {
         /*
             #swagger.tags = ["Cars"]
             #swagger.summary = "Get Single Car"
         */
-        const data = await Car.findOne({ _id: req.params.id })
+
+        const data = await Car.findOne({ _id: req.params.id }).populate([
+            { path: 'createdId', select: 'username' },
+            { path: 'updatedId', select: 'username' },
+        ])
+
         res.status(200).send({
             error: false,
             data
@@ -66,17 +123,18 @@ module.exports = {
 
     update: async (req, res) => {
         /*
-            #swagger.tags = ["Cars"]
-            #swagger.summary = "Update Cars"
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                  $ref:"#/definitions/Car"
-                }
-            }
-        */
+           #swagger.tags = ["Cars"]
+           #swagger.summary = "Update Car"
+           #swagger.parameters['body'] = {
+               in: 'body',
+               required: true,
+              schema: {
+                   $ref: "#/definitions/Car'
+               }
+           }
+       */
 
+        let customFilter = { _id: req.params.id }
 
         req.body.updatedId = req.user._id
 
@@ -87,13 +145,13 @@ module.exports = {
             data,
             new: await Car.findOne({ _id: req.params.id })
         })
-
     },
+
     delete: async (req, res) => {
         /*
-            #swagger.tags = ["Car"]
-            #swagger.summary = "Delete Car"
-        */
+           #swagger.tags = ["Cars"]
+           #swagger.summary = "Delete Car"
+       */
 
         const data = await Car.deleteOne({ _id: req.params.id })
 
@@ -101,6 +159,5 @@ module.exports = {
             error: !data.deletedCount,
             data
         })
-
     },
 }
