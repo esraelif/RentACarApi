@@ -1,11 +1,13 @@
 "use strict"
-const { isRejectedWithValue } = require('@reduxjs/toolkit')
 /* -------------------------------------------------------
     NODEJS EXPRESS | CLARUSWAY FullStack Team
 ------------------------------------------------------- */
 // Reservation Controller:
+
 const Reservation = require('../models/reservation')
+
 module.exports = {
+
     list: async (req, res) => {
         /*
             #swagger.tags = ["Reservations"]
@@ -20,7 +22,16 @@ module.exports = {
             `
         */
 
-        const data = await res.getModelList(Reservation)
+        let customFilter = {}
+        if (!req.user.isAdmin && !req.user.isStaff)
+            customFilter = { userId: req.user._id }
+
+        const data = await res.getModelList(Reservation, customFilter, [
+            { path: 'userId', select: 'username firstName lastName' },
+            { path: 'carId' },
+            { path: 'createdId', select: 'username' },
+            { path: 'updatedId', select: 'username' },
+        ])
 
         res.status(200).send({
             error: false,
@@ -28,6 +39,7 @@ module.exports = {
             data
         })
     },
+
     create: async (req, res) => {
         /*
            #swagger.tags = ["Reservations"]
@@ -75,31 +87,35 @@ module.exports = {
             })
         }
     },
+
     read: async (req, res) => {
         /*
-            #swagger.tags = ["Reservations"]
-            #swagger.summary = "Get Single Reservation"
-        */
+           #swagger.tags = ["Reservations"]
+           #swagger.summary = "Get Single Reservation"
+       */
+
         const data = await Reservation.findOne({ _id: req.params.id })
+
         res.status(200).send({
             error: false,
             data
         })
     },
+
     update: async (req, res) => {
         /*
-            #swagger.tags = ["Reservations"]
-            #swagger.summary = "Update Reservations"
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                  $ref:"#/definitions/Reservation"
-                }
-            }
-        */
+          #swagger.tags = ["Reservations"]
+          #swagger.summary = "Update Reservation"
+          #swagger.parameters['body'] = {
+              in: 'body',
+              required: true,
+             schema: {
+                  $ref: "#/definitions/Reservation'
+              }
+          }
+      */
 
-
+        let customFilter = { _id: req.params.id }
         req.body.updatedId = req.user._id
 
         const data = await Reservation.updateOne(customFilter, req.body, { runValidators: true })
@@ -107,15 +123,15 @@ module.exports = {
         res.status(202).send({
             error: false,
             data,
-            new: await Reservation.findOne({ _id: req.params.id })
+            new: await Car.findOne({ _id: req.params.id })
         })
-
     },
+
     delete: async (req, res) => {
         /*
-            #swagger.tags = ["Reservation"]
-            #swagger.summary = "Delete Reservation"
-        */
+           #swagger.tags = ["Reservations"]
+           #swagger.summary = "Delete Reservation"
+       */
 
         const data = await Reservation.deleteOne({ _id: req.params.id })
 
@@ -123,6 +139,5 @@ module.exports = {
             error: !data.deletedCount,
             data
         })
-
     },
 }
