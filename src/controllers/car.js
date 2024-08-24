@@ -59,7 +59,7 @@ module.exports = {
             // console.log(' reservedCars >> ', reservedCars);
 
             if (reservedCars.length) {
-                customFilter._id = { $nin: reservedCars }
+                customFilter._id = { $nin: reservedCars } //nin=not in
             }
         } else {
             res.errorStatusCode = 404
